@@ -19,7 +19,7 @@ dependencies:
 ```crystal
 require "binmap"
 
-private class BasicMapping
+class BasicMapping
   Binary.mapping(
     foo: UInt8,
     bar: Int16,
@@ -47,3 +47,4 @@ TODO: Write development instructions here
 ## Contributors
 
 - [maxpowa](https://github.com/maxpowa) Max Gurela - creator, maintainer
+- [RX14](https://github.com/RX14) Chris Hobbs - moral support
