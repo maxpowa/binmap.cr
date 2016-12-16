@@ -1,0 +1,10 @@
+name: binmap
+version: 0.1.0
+
+authors:
+  - Max Gurela <maxpowa1@gmail.com>
+
+
+crystal: 0.20.1
+
+license: MIT
