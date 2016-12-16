@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/maxpowa/binmap.cr.svg?branch=master)](https://travis-ci.org/maxpowa/binmap.cr)
+
 # binmap.cr
 
 Binary mapping macro for crystal, building as standalone for now with plans to cleanup and PR to stdlib.
@@ -8,17 +10,27 @@ Add this to your application's `shard.yml`:
 
 ```yaml
 dependencies:
-  binmap.cr:
+  binmap:
     github: maxpowa/binmap.cr
 ```
 
 ## Usage
 
 ```crystal
-require "binmap.cr"
+require "binmap"
+
+private class BasicMapping
+  Binary.mapping(
+    foo: UInt8,
+    bar: Int16,
+    baz: Float32
+  )
+end
+
+BasicMapping.new(io)
 ```
 
-TODO: Write usage instructions here
+TODO: Document supported types
 
 ## Development
 
