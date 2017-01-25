@@ -8,15 +8,30 @@ private class BasicMapping
   )
 end
 
+private class BitMapping
+  Binary.mapping(
+    foo: Binary::UBit2,
+    bar: Binary::Bit2,
+    baz: Binary::UBit4,
+    qux: UInt8
+  )
+end
+
 private class StringMapping
   Binary.mapping(
+    # Explicit string length
     foo: {
       type: String,
       size: 8
     },
+    # Implied 0 termination
     bar: {
-      type: String,
-      size: 16
+      type: String
+    },
+    # Generic with explicit length
+    baz: {
+      type: Array(UInt8),
+      size: 12
     }
   )
 end
@@ -120,8 +135,29 @@ describe "Binary Mapping" do
     mapping.baz.should eq(1.0_f32)
   end
 
+  it "parses an IO into a bit mapping" do
+    io = IO::Memory.new
+    io.write_bytes(0b01001001_u8, IO::ByteFormat::SystemEndian) # Offset/Header Length (High bits) | Reserved (3 low bits) | NS flag (last low bit)
+    io.write_bytes(16_u8, IO::ByteFormat::SystemEndian)
+    io.rewind
+
+    mapping = BitMapping.new(io)
+
+    mapping.foo.should be_a(Binary::UBit2)
+    mapping.foo.should eq(1)
+
+    mapping.bar.should be_a(Binary::Bit2)
+    mapping.bar.should eq(0)
+
+    mapping.baz.should be_a(Binary::UBit4)
+    mapping.baz.should eq(0b1001)
+
+    mapping.qux.should be_a(UInt8)
+    mapping.qux.should eq(16)
+  end
+
   it "parses an IO into a string mapping" do
-    io = IO::Memory.new("ABCDEFGHIJKLMNOPQRSTUVWX")
+    io = IO::Memory.new("ABCDEFGHIJKLMNOPQRSTUVWX\u{00}AAAAAAAAAAAA")
 
     mapping = StringMapping.new(io)
 
@@ -130,6 +166,10 @@ describe "Binary Mapping" do
 
     mapping.bar.should be_a(String)
     mapping.bar.should eq("IJKLMNOPQRSTUVWX")
+
+    mapping.baz.should be_a(Array(UInt8))
+    mapping.baz.should eq([65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65])
+    mapping.baz.size.should eq(12)
   end
 
   it "parses an IO into a mapping with skips" do
