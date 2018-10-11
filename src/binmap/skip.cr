@@ -3,8 +3,8 @@ module Binary
     def intialize
     end
 
-    def self.new(io : ::IO, size : Int, endianness = IO::ByteFormat::SystemEndian)
-      io.skip(size)
+    def self.new(io : ::IO, params)
+      io.skip(params[:size])
       new
     end
   end

@@ -9,6 +9,8 @@ module Binary
       {% if (properties[key][:type].is_a?(Generic) || SIZE_REQUIRED.includes?(properties[key][:type].resolve)) && !properties[key][:size] && !properties[key][:converter] %}
         {% raise "must specify size for #{properties[key][:type]} value \"#{key}\"" %}
       {% end %}
+      {% properties[key][:converter] = properties[key][:converter] ? properties[key][:converter] : properties[key][:type] %}
+      {% properties[key][:endianness] = properties[key][:endianness] ? properties[key][:endianness] : endianness %}
     {% end %}
 
     # Start generated getters/setters for properties
@@ -36,17 +38,17 @@ module Binary
     def initialize(io : ::IO)
       %io = ::IO::Binary.new(io)
       {% for key, value in properties %}
-        {% if value[:converter] %}
-          %var{key.id} = {{value[:converter]}}.from_io(%io, {{ value[:endianness] ? value[:endianness] : endianness }})
+        {% if value[:converter] && value[:converter] != value[:type] %}
+          %var{key.id} = {{value[:converter]}}.from_io(%io, params: {{value}})
         {% elsif value[:type].is_a?(Generic) || [String, Binary::Skip].includes?(value[:type].resolve) %}
-          %var{key.id} = {{value[:type]}}.new(%io, {{value[:size]}}, {{ value[:endianness] ? value[:endianness] : endianness }})
+          %var{key.id} = {{value[:type]}}.new(%io, params: {{value}})
         {% else %}
-          %var{key.id} = %io.read_bytes({{value[:type]}}, {{ value[:endianness] ? value[:endianness] : endianness }})
+          %var{key.id} = %io.read_bytes({{value[:type]}}, {{value[:endianness]}})
         {% end %}
 
         {% if value[:nilable] %}
           {% if value[:default] != nil %}
-            @{{key.id}} = %found{key.id} ? %var{key.id} : {{value[:default]}}
+            @{{key.id}} = %var{key.id} ? %var{key.id} : {{value[:default]}}
           {% else %}
             @{{key.id}} = %var{key.id}
           {% end %}
@@ -61,6 +63,7 @@ module Binary
     def to_io(io : ::IO)
       # TODO
     end
+
   end
 
   macro mapping(**properties)

@@ -64,10 +64,10 @@ private class ReferenceMapping
 end
 
 private class IPConverter
-  def self.from_io(io : IO, endianness = IO::ByteFormat::BigEndian)
+  def self.from_io(io : IO, params)
     array = Array(UInt8).new
     4.times do
-      array << io.read_bytes(UInt8, endianness)
+      array << io.read_bytes(UInt8, params[:endianness])
     end
     array.join('.')
   end

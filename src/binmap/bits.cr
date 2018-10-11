@@ -3,7 +3,7 @@
 module Binary
 
   abstract struct Bits
-    def initialize(io : ::IO::Binary, size : Int, endian = ::IO::ByteFormat::SystemEndian)
+    def initialize(io : ::IO::Binary, size : Int)
     end
 
     def to_io(io : ::IO::Binary)
@@ -17,12 +17,10 @@ module Binary
     {% signed = i % 2 %}
 
     struct {{type.id}} < Bits
-      @raw_bits : Int32
       @value : Int32
 
-      def initialize(io : ::IO::Binary, endian = ::IO::ByteFormat::SystemEndian)
-        @raw_bits = io.read_bits({{bitsize}}, endian)
-        val = @raw_bits
+      def initialize(io : ::IO::Binary)
+        val = io.read_bits({{bitsize}})
 
         {% if signed == 1 && bitsize == 1 %}
           raise Error.new("signed bitfield must have more than one bit")
@@ -58,8 +56,8 @@ module Binary
         @value.bit(bit)
       end
 
-      def self.from_io(io, format)
-        new(io, format)
+      def self.from_io(io : ::IO::Binary, format : ::IO::ByteFormat)
+        new(io)
       end
 
       def inspect(io : ::IO)
@@ -96,8 +94,6 @@ module Binary
     end
 
   {% end %}
-
-{% debug() %}
 {% end %}
 
 end
